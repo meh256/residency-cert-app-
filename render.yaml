@@ -1,0 +1,51 @@
+services:
+  - type: web
+    name: residencycert-web
+    env: node
+    plan: starter
+    rootDir: apps/web
+    buildCommand: pnpm install --frozen-lockfile && pnpm turbo run build --filter=web...
+    startCommand: pnpm turbo run start --filter=web...
+    healthCheckPath: /
+    autoDeploy: true
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: STRIPE_PUBLISHABLE_KEY
+        sync: false
+      - key: NEXT_PUBLIC_STRIPE_PRICE_ID
+        sync: false
+
+  - type: worker
+    name: residencycert-worker
+    env: node
+    plan: starter
+    rootDir: apps/worker
+    buildCommand: pnpm install --frozen-lockfile && pnpm turbo run build --filter=worker...
+    startCommand: pnpm turbo run start --filter=worker...
+    autoDeploy: true
+    envVars:
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: DOCUMO_API_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE
+        sync: false
+      - key: POSTMARK_TOKEN
+        sync: false
+
+  - type: cron
+    name: residencycert-reminders
+    env: node
+    schedule: "@daily"
+    rootDir: apps/worker
+    buildCommand: pnpm install --frozen-lockfile && pnpm turbo run build --filter=worker...
+    startCommand: pnpm turbo run cron:reminders --filter=worker...
+    autoDeploy: true
+    envVars:
+      - key: SUPABASE_SERVICE_ROLE
+        sync: false 
